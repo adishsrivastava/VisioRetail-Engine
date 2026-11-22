@@ -33,6 +33,7 @@
           <label class="btn primary">Upload Photo<input type="file" id="photo-input" accept="image/*"
               style="display:none;" onchange="onUploadPhoto(event)"></label>
           <button class="btn" id="cam-btn" onclick="toggleCamera()">Use Webcam</button>
+          <button class="btn" id="conv-top-btn" onclick="toggleConv2DView()">Toggle 2D Conv Map</button>
         </div>
         <div class="sample-row">
           <div class="sample-chip active" onclick="selectSample(0, this)">Sneaker</div>
@@ -41,7 +42,7 @@
           <div class="sample-chip" onclick="selectSample(3, this)">Winter Jacket</div>
           <div class="sample-chip" onclick="selectSample(4, this)">Headphones</div>
         </div>
-        <div class="canvas-wrap">
+        <div class="canvas-wrap" id="main-canvas-box">
           <video id="webcam-el" autoplay playsinline muted style="display:none; width:100%; max-height:260px;"></video>
           <canvas id="input-canvas" width="500" height="260"></canvas>
         </div>
@@ -78,43 +79,66 @@
       </div>
     </div>
 
-    <!-- OPTIONAL COLLAPSIBLE DRAWER FOR UNDER-THE-HOOD MATH & BENCHMARKS -->
-    <details class="card" style="margin-top:10px;">
-      <summary style="cursor:pointer; font-weight:700; font-size:14px; color:var(--muted);">&#9881; View Under-the-Hood
-        Visualizers &amp; Architecture Benchmarks (Conv2D, Optimizers, SVD, Hebbian/Boltzmann &amp; VAE)</summary>
+    <!-- UNDER-THE-HOOD MATH & BENCHMARKS DRAWER (Open by default so charts render immediately) -->
+    <details class="card" id="diagnostics-drawer" open style="margin-top:10px;">
+      <summary style="cursor:pointer; font-weight:700; font-size:14px; color:var(--muted);">
+        &#9881; View Under-the-Hood Visualizers &amp; Architecture Benchmarks (Conv2D, Optimizers, SVD,
+        Hebbian/Boltzmann &amp; VAE)
+      </summary>
       <div class="grid-2" style="margin-top:16px; margin-bottom:0;">
+        <!-- Left Diagnostics: 2D Conv, Animated Optimizers & Gradient Check -->
         <div>
           <h2>2D Convolution, Optimizers (GD/SGD/Momentum/NAG) &amp; Gradient Check</h2>
-          <p class="sub">Interactive verification of 2D Sobel Convolution, MLP Optimizer convergence, and numerical
-            gradient checking.</p>
+          <p class="sub">Interactive verification of 2D Sobel Convolution, live 80-epoch MLP Optimizer race, and
+            numerical gradient checking.</p>
           <div class="btn-row">
-            <button class="btn" onclick="toggleConv2DView()">Toggle 2D Convolution Map on Image</button>
-            <button class="btn primary" onclick="runLiveMLPRace()">Run Optimizer Comparison</button>
-            <button class="btn" onclick="runFiniteDiffCheck()">Run Gradient Check</button>
+            <button class="btn" onclick="toggleConv2DView(true)">Toggle 2D Convolution Map on Image</button>
+            <button class="btn primary" onclick="runLiveMLPRace()">&#9654; Run Optimizer Comparison</button>
+            <button class="btn" onclick="runFiniteDiffCheck()">&#10003; Run Gradient Check</button>
           </div>
-          <div class="canvas-wrap" style="height:185px; background:#fff;"><canvas id="mlp-chart" width="480"
-              height="185"></canvas></div>
+          <div class="canvas-wrap" style="height:195px; background:#ffffff;">
+            <canvas id="mlp-chart" width="480" height="195"></canvas>
+          </div>
           <div
-            style="display:flex; gap:12px; font-size:11.5px; justify-content:center; margin-top:4px; font-weight:600;">
-            <span style="color:#64748b;">[Batch GD]</span><span style="color:#d97706;">[SGD]</span><span
-              style="color:#2563eb;">[Momentum]</span><span style="color:#059669;">[Nesterov NAG]</span>
+            style="display:flex; gap:12px; font-size:11.5px; justify-content:center; margin-top:6px; font-weight:600;">
+            <span style="color:#64748b;">&#9632; Batch GD</span>
+            <span style="color:#d97706;">&#9632; Vanilla SGD</span>
+            <span style="color:#2563eb;">&#9632; Momentum (0.9)</span>
+            <span style="color:#059669;">&#9632; Nesterov (NAG)</span>
           </div>
-          <div class="log-box" id="grad-log">Analytical vs Numerical Finite-Difference Error: 3.58e-8 (PASS) | SVD
-            Rank-128 Retained Variance: 99.1%</div>
+          <div class="log-box" id="grad-log">
+            <div><span class="log-hl">Ready:</span> Click <strong>Run Optimizer Comparison</strong> or <strong>Run
+                Gradient Check</strong> above.</div>
+          </div>
         </div>
+
+        <!-- Right Diagnostics: Interactive VAE Product Generator, Hebbian/RBM & Benchmarks -->
         <div>
           <h2>VAE Latent Space Generator, Hebbian/Boltzmann &amp; Model Benchmarks</h2>
-          <p class="sub">Click inside the 2D VAE Latent Space pad to generate synthetic product variations, or inspect
-            architecture benchmarks.</p>
-          <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
-            <div class="canvas-wrap" style="height:130px; width:160px; cursor:crosshair;"><canvas id="vae-pad"
-                width="160" height="130"></canvas></div>
-            <div class="canvas-wrap" style="height:130px; width:130px; flex-direction:column; color:#fff;">
-              <div id="vae-label" style="font-size:10px;">z=[0.2,-0.3]</div><canvas id="vae-out" width="90"
-                height="90"></canvas>
+          <p class="sub">Click or drag inside the 2D VAE Latent Space pad on the left to synthesize product variations,
+            or test Hebbian &amp; RBM learning.</p>
+          <div style="display:flex; gap:12px; align-items:center; margin-bottom:10px; flex-wrap:wrap;">
+            <div class="canvas-wrap" style="height:140px; width:165px; cursor:crosshair;"
+              title="Click anywhere to sample Latent Space z">
+              <canvas id="vae-pad" width="165" height="140"></canvas>
             </div>
-            <button class="btn" onclick="simulateOjaAndRBM()">Test Hebbian &amp; RBM</button>
+            <div class="canvas-wrap" style="height:140px; width:155px; flex-direction:column; color:#fff; padding:6px;">
+              <div id="vae-label" style="font-size:10.5px; color:#93c5fd; margin-bottom:2px; font-family:monospace;">z =
+                [0.20, -0.30]</div>
+              <canvas id="vae-out" width="110" height="105"></canvas>
+            </div>
+            <div style="flex:1; min-width:140px;">
+              <button class="btn primary" style="width:100%; margin-bottom:6px;" onclick="simulateOjaAndRBM()">&#9889;
+                Test Hebbian &amp; RBM</button>
+              <button class="btn" style="width:100%;" onclick="randomVAESample()">&#127922; Random VAE Sample</button>
+            </div>
           </div>
+
+          <div class="log-box" id="hebb-log" style="margin-top:0; margin-bottom:10px;">
+            <div><span class="log-bl">[Bio &amp; Generative Status]</span> Click the 2D Latent Pad or press <strong>Test
+                Hebbian &amp; RBM</strong>.</div>
+          </div>
+
           <table>
             <thead>
               <tr>
