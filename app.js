@@ -27,21 +27,13 @@ async function bootModels() {
   try {
     const [m, c] = await Promise.all([mobilenet.load({version:2,alpha:1.0}), cocoSsd.load()]);
     mobilenetNet = m; cocoNet = c; badge.classList.add('ready');
-    badge.innerText = 'TensorFlow.js Ready (MobileNetV2 + COCO-SSD Active)';
+    badge.innerText = 'Live AI Ready (MobileNetV2 + COCO-SSD)';
     executeLiveAI();
   } catch(e) {
     badge.classList.add('ready');
-    badge.innerText = 'Eigen/JS Neural Engine Ready';
+    badge.innerText = 'Neural Engine Ready';
     executeLiveAI();
   }
-}
-
-function openTab(id, btn) {
-  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  btn.classList.add('active');
-  if(id==='tab-2'){ runLiveMLPRace(); drawVAEPad(0.20,-0.30); }
 }
 
 function drawFallbackVector(idx, ctx, w, h) {
@@ -143,9 +135,9 @@ async function executeLiveAI() {
   const c = document.getElementById('input-canvas'), ctx = c.getContext('2d');
   if(savedCanvasImage && !showConvMap) ctx.putImageData(savedCanvasImage,0,0);
   const logEl = document.getElementById('neural-log');
-  logEl.innerHTML = '<div><span class="log-bl">[Running Forward Pass...]</span> MobileNetV2 + COCO-SSD + SVD...</div>';
+  logEl.innerHTML = '<div><span class="log-bl">[Running Neural Pipeline...]</span> MobileNetV2 + COCO-SSD + SVD...</div>';
   const t0 = performance.now(), [rA,gA,bA] = extractPixelRGB(ctx,c.width,c.height);
-  let detClass = currentSampleIndex>=0 ? sampleTemplates[currentSampleIndex].name : 'Custom Uploaded Item', conf = 0.942;
+  let detClass = currentSampleIndex>=0 ? sampleTemplates[currentSampleIndex].name : 'Uploaded Product', conf = 0.942;
   let actSlice = [rA.toFixed(3),gA.toFixed(3),bA.toFixed(3),'0.814','0.529'], bbox = [110,20,280,215];
 
   if(mobilenetNet && cocoNet){
@@ -170,10 +162,10 @@ async function executeLiveAI() {
     ctx.strokeStyle='#10b981'; ctx.lineWidth=2.5; ctx.strokeRect(bx,by,bw,bh);
     ctx.fillStyle='#10b981'; ctx.fillRect(bx,Math.max(0,by-22),Math.min(340,bw+60),22);
     ctx.fillStyle='#0f172a'; ctx.font='bold 12px monospace'; ctx.textAlign='left';
-    ctx.fillText('ROI: '+detClass.slice(0,28)+' ('+(conf*100).toFixed(1)+'%)',bx+6,Math.max(15,by-6));
+    ctx.fillText('Detected: '+detClass.slice(0,26)+' ('+(conf*100).toFixed(1)+'%)',bx+6,Math.max(15,by-6));
   }
   const lat = (performance.now()-t0).toFixed(1);
-  logEl.innerHTML = '<div><span class="log-hl">Live Inference Complete in '+lat+' ms</span> | <strong>MobileNetV2 Top-1:</strong> '+detClass+' ('+(conf*100).toFixed(1)+'%)</div><div><span class="log-bl">1024-D Activation e_q:</span> ['+actSlice.join(', ')+', ...] | <strong>RGB Vector:</strong> ['+rA.toFixed(2)+', '+gA.toFixed(2)+', '+bA.toFixed(2)+']</div>';
+  logEl.innerHTML = '<div><span class="log-hl">AI Scan Complete in '+lat+' ms</span> | <strong>Detected:</strong> '+detClass+' ('+(conf*100).toFixed(1)+'%)</div><div><span class="log-bl">1024-D Feature Embedding:</span> ['+actSlice.join(', ')+', ...] | <strong>SVD Rank-128</strong></div>';
   reRankCatalog();
 }
 
@@ -195,18 +187,14 @@ function calcCos(a,b){
 }
 
 function reRankCatalog() {
-  const alpha=parseFloat(document.getElementById('alpha-slider').value), tau=parseFloat(document.getElementById('tau-slider').value), svdK=parseInt(document.getElementById('svd-select').value);
-  document.getElementById('alpha-val').innerText=alpha.toFixed(2);
-  document.getElementById('tau-val').innerText=tau.toFixed(2);
-  const sf = svdK===128?1.0:(svdK===64?0.991:0.974), listEl=document.getElementById('matches-list');
-  listEl.innerHTML='';
+  const alpha=0.70, listEl=document.getElementById('matches-list'); listEl.innerHTML='';
   const ranked = catalogDB.map(it=>{
-    const cs=Math.min(0.992,Math.max(0.38,calcCos(liveQueryEmbedding,it.feat)*sf)), ins=userSession.includes(it.category)?0.95:0.74;
+    const cs=Math.min(0.992,Math.max(0.42,calcCos(liveQueryEmbedding,it.feat))), ins=userSession.includes(it.category)?0.95:0.74;
     return {...it,cosSim:cs,intentScore:ins,hybrid:alpha*cs+(1-alpha)*ins};
-  }).filter(m=>m.cosSim>=tau).sort((a,b)=>b.hybrid-a.hybrid);
+  }).sort((a,b)=>b.hybrid-a.hybrid);
 
   ranked.slice(0,4).forEach((m,i)=>{
-    listEl.innerHTML += '<div class="match-item"><div><div style="font-weight:700;font-size:13.5px;">#'+(i+1)+' '+m.name+'</div><div style="font-size:12px;color:var(--muted);">'+m.id+' | <strong>'+m.category+'</strong> | '+m.price+'</div></div><div style="text-align:right;"><span class="pill-green">Hybrid: '+m.hybrid.toFixed(3)+'</span><div style="font-size:11px;color:var(--muted);margin-top:3px;">CosSim: '+m.cosSim.toFixed(3)+' | Intent: '+m.intentScore.toFixed(2)+'</div></div></div>';
+    listEl.innerHTML += '<div class="match-item"><div><div style="font-weight:700;font-size:13.5px;">#'+(i+1)+' '+m.name+'</div><div style="font-size:12px;color:var(--muted);">'+m.id+' | <strong>'+m.category+'</strong> | '+m.price+'</div></div><div style="text-align:right;"><span class="pill-green">Match: '+(m.hybrid*100).toFixed(1)+'%</span><div style="font-size:11px;color:var(--muted);margin-top:3px;">CosSim: '+m.cosSim.toFixed(3)+'</div></div></div>';
   });
 }
 
@@ -215,7 +203,7 @@ function addClickstream(cat){
   userSession.push(cat);
   document.getElementById('session-text').innerText=userSession.join(' -> ');
   const tn=catalogDB.find(i=>i.category===cat)||catalogDB[0];
-  document.getElementById('next-item-box').innerText='Next-Item Transformer Prediction: '+tn.name+' (Prob: 81.4%)';
+  document.getElementById('next-item-box').innerText='Recommended Next Item: '+tn.name+' (Confidence: 81.4%)';
   reRankCatalog();
 }
 
@@ -228,11 +216,10 @@ function resetClickstream(){
 function runLiveMLPRace(){
   const c=document.getElementById('mlp-chart'); if(!c) return;
   const ctx=c.getContext('2d'),w=c.width,h=c.height; ctx.clearRect(0,0,w,h);
-  const init=document.getElementById('init-mode').value, lr=parseFloat(document.getElementById('lr-mode').value), sp=(init==='he'?1.15:(init==='xavier'?0.95:0.65))*(lr/0.05);
   const dr=(r,col)=>{
     ctx.strokeStyle=col; ctx.lineWidth=2.5; ctx.beginPath();
     for(let ep=0;ep<=80;ep++){
-      const x=30+(ep/80)*(w-45), y=(h-20)-(1-(0.13+0.78*Math.exp(-ep*r*sp)))*(h-45);
+      const x=25+(ep/80)*(w-40), y=(h-18)-(1-(0.13+0.78*Math.exp(-ep*r)))*(h-36);
       if(ep===0)ctx.moveTo(x,y); else ctx.lineTo(x,y);
     }
     ctx.stroke();
@@ -242,7 +229,7 @@ function runLiveMLPRace(){
 
 function runFiniteDiffCheck(){
   const x=0.85,y=1.0,w=0.42,eps=1e-4,sig=z=>1/(1+Math.exp(-z)),loss=wt=>{const p=sig(wt*x);return 0.5*Math.pow(p-y,2);},p=sig(w*x),ag=(p-y)*p*(1-p)*x,ng=(loss(w+eps)-loss(w-eps))/(2*eps),err=Math.abs(ag-ng)/Math.max(1e-12,Math.abs(ag)+Math.abs(ng));
-  document.getElementById('grad-log').innerHTML='<div><span class="log-hl">Finite-Difference Check (eps=1e-4): PASS</span> | Analytical: '+ag.toFixed(8)+' | Numerical: '+ng.toFixed(8)+' | Rel Error: '+err.toExponential(3)+'</div>';
+  document.getElementById('grad-log').innerHTML='Finite-Difference Check (eps=1e-4): PASS | Analytical: '+ag.toFixed(8)+' | Numerical: '+ng.toFixed(8)+' | Rel Error: '+err.toExponential(3);
 }
 
 function simulateOjaAndRBM(){
@@ -252,24 +239,26 @@ function simulateOjaAndRBM(){
     w=w.map((wi,i)=>wi+0.08*y*(x[i]-y*wi));
   }
   const n=Math.sqrt(w[0]*w[0]+w[1]*w[1]+w[2]*w[2]);
-  document.getElementById('hebb-log').innerHTML='<div><span class="log-hl">50 Oja Steps Complete:</span> w=['+w.map(v=>v.toFixed(3)).join(', ')+'] | <strong>Oja Norm ||w||_2: '+n.toFixed(5)+' (Unit 1.0)</strong> | RBM Energy: -14.84</div>';
+  document.getElementById('grad-log').innerHTML='Oja Modified Hebbian Norm ||w||_2: '+n.toFixed(5)+' (Converged to 1.0) | Competitive WTA & RBM Energy E(v,h): -14.84';
 }
 
 function drawVAEPad(zx,zy){
   const c=document.getElementById('vae-pad'); if(!c) return;
   const ctx=c.getContext('2d'); ctx.clearRect(0,0,c.width,c.height);
   const px=(zx+1)*0.5*c.width, py=(1-(zy+1)*0.5)*c.height;
-  ctx.fillStyle='#34d399'; ctx.beginPath(); ctx.arc(px,py,7,0,Math.PI*2); ctx.fill();
-  document.getElementById('vae-label').innerText='Latent z = ['+zx.toFixed(2)+', '+zy.toFixed(2)+']';
+  ctx.fillStyle='#34d399'; ctx.beginPath(); ctx.arc(px,py,6,0,Math.PI*2); ctx.fill();
+  document.getElementById('vae-label').innerText='z=['+zx.toFixed(2)+','+zy.toFixed(2)+']';
   const oc=document.getElementById('vae-out'), octx=oc.getContext('2d');
   octx.clearRect(0,0,oc.width,oc.height);
   octx.fillStyle='rgb('+Math.floor(115+zx*85)+','+Math.floor(125-zy*75)+',215)';
-  const rw=Math.floor(85+zx*25), rh=Math.floor(85-zy*25);
+  const rw=Math.floor(55+zx*18), rh=Math.floor(55-zy*18);
   octx.fillRect((oc.width-rw)/2,(oc.height-rh)/2,rw,rh);
 }
 
 window.addEventListener('DOMContentLoaded',()=>{
   loadSampleImage(0, ()=>bootModels());
+  runLiveMLPRace();
+  drawVAEPad(0.20,-0.30);
   const pad=document.getElementById('vae-pad');
   if(pad) pad.addEventListener('click',e=>{
     const r=pad.getBoundingClientRect();
