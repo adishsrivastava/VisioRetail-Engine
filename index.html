@@ -1,144 +1,268 @@
 <!DOCTYPE html>
-<html lang='en'>
+<html lang="en">
+
 <head>
-  <meta charset='UTF-8'>
-  <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-  <title>CSAI3027P Project 39 | Live AI Retail Visual Search & Recommender</title>
-  <link rel='stylesheet' href='styles.css'>
-  <script src='https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.15.0/dist/tf.min.js'></script>
-  <script src='https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.0'></script>
-  <script src='https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3'></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VisioRetail Engine | AI Product Visual Search & Sequential Recommender</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.15.0/dist/tf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.0"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3"></script>
 </head>
+
 <body>
-  <header class='navbar'>
-    <div class='brand'>
-      <h1>VisioRetail &mdash; Live AI Product Visual Search &amp; Recommendation Engine</h1>
-      <p>CSAI3027P Deep Learning &bull; Project 39 &bull; Real-Time Browser Neural Inference (MobileNetV2 + COCO-SSD + SVD)</p>
+  <header class="navbar">
+    <div class="brand">
+      <h1>VisioRetail Engine &mdash; AI Product Visual Search &amp; Sequential Recommender</h1>
+      <p>Real-Time Browser Neural Inference (MobileNetV2 + COCO-SSD + Truncated SVD + SASRec Intent Fusion)</p>
     </div>
-    <div id='ai-badge' class='status-badge'>Loading TensorFlow.js Models...</div>
+    <div id="ai-badge" class="status-badge">Loading TensorFlow.js Models...</div>
   </header>
-  <main class='container'>
-    <nav class='tabs'>
-      <button class='tab-btn active' onclick='openTab("tab-1", this)'>1. Live AI Visual Search &amp; Session Recommender (Units IV &amp; V)</button>
-      <button class='tab-btn' onclick='openTab("tab-2", this)'>2. Interactive Neural Sandbox: MLP, SVD, Hebbian &amp; VAE (Units I, II, III, V)</button>
-      <button class='tab-btn' onclick='openTab("tab-3", this)'>3. Datasets, Architecture Benchmarks &amp; Ablation Study (Phase I &amp; II)</button>
+
+  <main class="container">
+    <nav class="tabs">
+      <button class="tab-btn active" onclick="openTab('tab-1', this)">1. Live AI Visual Search &amp; Session
+        Recommender</button>
+      <button class="tab-btn" onclick="openTab('tab-2', this)">2. Interactive Neural Sandbox (MLP, SVD, Hebbian &amp;
+        VAE)</button>
+      <button class="tab-btn" onclick="openTab('tab-3', this)">3. Datasets, Architecture Benchmarks &amp; Ablation
+        Study</button>
     </nav>
-    <section id='tab-1' class='tab-panel active'>
-      <div class='grid-2'>
-        <div class='card'>
+
+    <!-- TAB 1: LIVE AI VISUAL SEARCH -->
+    <section id="tab-1" class="tab-panel active">
+      <div class="grid-2">
+        <div class="card">
           <h2>Step 1: Choose or Upload Any Product Image</h2>
-          <p class='sub'>Select a real product photo below, upload any image from your device, or use your webcam. Click <strong>Run Live AI Analysis Now</strong> to execute MobileNetV2 + COCO-SSD + 2D Convolution live.</p>
-          <div class='btn-row'>
-            <button class='btn run-ai' onclick='executeLiveAI()'>&#9889; Run Live AI Analysis Now</button>
-            <label class='btn primary'>Upload Photo<input type='file' id='photo-input' accept='image/*' style='display:none;' onchange='onUploadPhoto(event)'></label>
-            <button class='btn' id='cam-btn' onclick='toggleCamera()'>Use Webcam</button>
-            <button class='btn' onclick='toggleConv2DView()'>Toggle Conv2D Feature Map</button>
+          <p class="sub">Select a product photo below, upload any image from your device, or use your webcam. Click
+            <strong>Run Live AI Analysis Now</strong> to execute MobileNetV2 + COCO-SSD + 2D Convolution live.</p>
+          <div class="btn-row">
+            <button class="btn run-ai" onclick="executeLiveAI()">&#9889; Run Live AI Analysis Now</button>
+            <label class="btn primary">Upload Photo<input type="file" id="photo-input" accept="image/*"
+                style="display:none;" onchange="onUploadPhoto(event)"></label>
+            <button class="btn" id="cam-btn" onclick="toggleCamera()">Use Webcam</button>
+            <button class="btn" onclick="toggleConv2DView()">Toggle Conv2D Feature Map</button>
           </div>
-          <div class='sample-row'>
-            <div class='sample-chip active' onclick='selectSample(0, this)'>1. Running Sneaker</div>
-            <div class='sample-chip' onclick='selectSample(1, this)'>2. Leather Backpack</div>
-            <div class='sample-chip' onclick='selectSample(2, this)'>3. Chronograph Watch</div>
-            <div class='sample-chip' onclick='selectSample(3, this)'>4. Winter Parka</div>
-            <div class='sample-chip' onclick='selectSample(4, this)'>5. Studio Headphones</div>
+          <div class="sample-row">
+            <div class="sample-chip active" onclick="selectSample(0, this)">1. Running Sneaker</div>
+            <div class="sample-chip" onclick="selectSample(1, this)">2. Leather Backpack</div>
+            <div class="sample-chip" onclick="selectSample(2, this)">3. Chronograph Watch</div>
+            <div class="sample-chip" onclick="selectSample(3, this)">4. Winter Parka</div>
+            <div class="sample-chip" onclick="selectSample(4, this)">5. Studio Headphones</div>
           </div>
-          <div class='canvas-wrap'>
-            <video id='webcam-el' autoplay playsinline muted style='display:none; width:100%; max-height:255px;'></video>
-            <canvas id='input-canvas' width='500' height='255'></canvas>
+          <div class="canvas-wrap">
+            <video id="webcam-el" autoplay playsinline muted
+              style="display:none; width:100%; max-height:255px;"></video>
+            <canvas id="input-canvas" width="500" height="255"></canvas>
           </div>
-          <div class='log-box' id='neural-log'>Ready. Click <strong>Run Live AI Analysis Now</strong> or upload any photo...</div>
+          <div class="log-box" id="neural-log">Ready. Click <strong>Run Live AI Analysis Now</strong> or upload any
+            photo...</div>
         </div>
-        <div class='card'>
+
+        <div class="card">
           <h2>Step 2: Live Visual Matches &amp; Sequential Intent Ranking</h2>
-          <p class='sub'>Ranked live using: <code>HybridScore = &alpha; &middot; CosineSim(e_q, e_c) + (1 - &alpha;) &middot; SASRec_Intent(S_u)</code></p>
-          <div class='control-bar'>
-            <label><strong>Visual (&alpha;):</strong> <span id='alpha-val'>0.70</span> <input type='range' id='alpha-slider' min='0.20' max='1.00' step='0.05' value='0.70' oninput='reRankCatalog()'></label>
-            <label><strong>Thresh (&tau;):</strong> <span id='tau-val'>0.55</span> <input type='range' id='tau-slider' min='0.35' max='0.85' step='0.05' value='0.55' oninput='reRankCatalog()'></label>
-            <label><strong>SVD:</strong> <select id='svd-select' onchange='reRankCatalog()'><option value='128'>k=128 (99.1%)</option><option value='64'>k=64 (96.4%)</option><option value='32'>k=32 (89.2%)</option></select></label>
+          <p class="sub">Ranked live using:
+            <code>HybridScore = &alpha; &middot; CosineSim(e_q, e_c) + (1 - &alpha;) &middot; SASRec_Intent(S_u)</code>
+          </p>
+          <div class="control-bar">
+            <label><strong>Visual (&alpha;):</strong> <span id="alpha-val">0.70</span> <input type="range"
+                id="alpha-slider" min="0.20" max="1.00" step="0.05" value="0.70" oninput="reRankCatalog()"></label>
+            <label><strong>Thresh (&tau;):</strong> <span id="tau-val">0.55</span> <input type="range" id="tau-slider"
+                min="0.35" max="0.85" step="0.05" value="0.55" oninput="reRankCatalog()"></label>
+            <label><strong>SVD:</strong> <select id="svd-select" onchange="reRankCatalog()">
+                <option value="128">k=128 (99.1%)</option>
+                <option value="64">k=64 (96.4%)</option>
+                <option value="32">k=32 (89.2%)</option>
+              </select></label>
           </div>
-          <div id='matches-list'></div>
-          <div style='margin-top:14px; padding-top:12px; border-top:1px solid var(--border);'>
-            <h2>Step 3: Simulate User Session Clickstream (Unit V SASRec)</h2>
-            <p class='sub'>Click categories to append to the shopper's session <code>S_u</code> and watch live re-ranking:</p>
-            <div class='btn-row' style='margin-bottom:8px;'>
-              <button class='btn' onclick='addClickstream("Footwear")'>+ Footwear</button>
-              <button class='btn' onclick='addClickstream("Bags")'>+ Bags</button>
-              <button class='btn' onclick='addClickstream("Watches")'>+ Watches</button>
-              <button class='btn' onclick='addClickstream("Outerwear")'>+ Outerwear</button>
-              <button class='btn' onclick='addClickstream("Audio")'>+ Audio</button>
-              <button class='btn' onclick='resetClickstream()'>Reset</button>
+          <div id="matches-list"></div>
+          <div style="margin-top:14px; padding-top:12px; border-top:1px solid var(--border);">
+            <h2>Step 3: Simulate User Session Clickstream (SASRec Transformer)</h2>
+            <p class="sub">Click categories to append to the shopper's session <code>S_u</code> and watch live
+              re-ranking:</p>
+            <div class="btn-row" style="margin-bottom:8px;">
+              <button class="btn" onclick="addClickstream('Footwear')">+ Footwear</button>
+              <button class="btn" onclick="addClickstream('Bags')">+ Bags</button>
+              <button class="btn" onclick="addClickstream('Watches')">+ Watches</button>
+              <button class="btn" onclick="addClickstream('Outerwear')">+ Outerwear</button>
+              <button class="btn" onclick="addClickstream('Audio')">+ Audio</button>
+              <button class="btn" onclick="resetClickstream()">Reset</button>
             </div>
-            <div class='log-box' style='margin-top:0;'>
-              <div><span class='log-bl'>Active Session S_u:</span> <span id='session-text'>Footwear -&gt; Outerwear</span></div>
-              <div id='next-item-box' class='log-hl' style='margin-top:3px;'>Next-Item Transformer Prediction: Alpine Gore-Tex Parka (78.4%)</div>
+            <div class="log-box" style="margin-top:0;">
+              <div><span class="log-bl">Active Session S_u:</span> <span id="session-text">Footwear -&gt;
+                  Outerwear</span></div>
+              <div id="next-item-box" class="log-hl" style="margin-top:3px;">Next-Item Transformer Prediction: Alpine
+                Gore-Tex Parka (78.4%)</div>
             </div>
           </div>
         </div>
       </div>
     </section>
-    <section id='tab-2' class='tab-panel'>
-      <div class='grid-2'>
-        <div class='card'>
-          <h2>Units I, II &amp; III: Live MLP Optimizer Race &amp; Gradient Verification</h2>
-          <p class='sub'>Runs live forward/backward propagation comparing <strong>Batch GD, SGD, Momentum (0.9), and Nesterov (NAG)</strong>.</p>
-          <div class='control-bar'>
-            <label>Init: <select id='init-mode' onchange='runLiveMLPRace()'><option value='he'>He Normal</option><option value='xavier'>Xavier Glorot</option><option value='naive'>Naive Gaussian</option></select></label>
-            <label>LR: <select id='lr-mode' onchange='runLiveMLPRace()'><option value='0.05'>0.05</option><option value='0.02'>0.02</option><option value='0.10'>0.10</option></select></label>
-            <button class='btn primary' onclick='runLiveMLPRace()'>&#9654; Train 80 Epochs</button>
-            <button class='btn' onclick='runFiniteDiffCheck()'>Check Gradients (&epsilon;=1e-4)</button>
+
+    <!-- TAB 2: INTERACTIVE NEURAL SANDBOX -->
+    <section id="tab-2" class="tab-panel">
+      <div class="grid-2">
+        <div class="card">
+          <h2>Live MLP Optimizer Race &amp; Numerical Gradient Verification</h2>
+          <p class="sub">Runs live forward/backward propagation comparing <strong>Batch GD, SGD, Momentum (0.9), and
+              Nesterov (NAG)</strong>.</p>
+          <div class="control-bar">
+            <label>Init: <select id="init-mode" onchange="runLiveMLPRace()">
+                <option value="he">He Normal</option>
+                <option value="xavier">Xavier Glorot</option>
+                <option value="naive">Naive Gaussian</option>
+              </select></label>
+            <label>LR: <select id="lr-mode" onchange="runLiveMLPRace()">
+                <option value="0.05">0.05</option>
+                <option value="0.02">0.02</option>
+                <option value="0.10">0.10</option>
+              </select></label>
+            <button class="btn primary" onclick="runLiveMLPRace()">&#9654; Train 80 Epochs</button>
+            <button class="btn" onclick="runFiniteDiffCheck()">Check Gradients (&epsilon;=1e-4)</button>
           </div>
-          <div class='canvas-wrap' style='height:210px; background:#fff;'><canvas id='mlp-chart' width='500' height='210'></canvas></div>
-          <div style='display:flex; gap:14px; font-size:12px; justify-content:center; margin-top:6px; font-weight:600;'>
-            <span style='color:#64748b;'>[Batch GD]</span><span style='color:#d97706;'>[Vanilla SGD]</span><span style='color:#2563eb;'>[Momentum 0.9]</span><span style='color:#059669;'>[Nesterov NAG]</span>
+          <div class="canvas-wrap" style="height:210px; background:#fff;"><canvas id="mlp-chart" width="500"
+              height="210"></canvas></div>
+          <div style="display:flex; gap:14px; font-size:12px; justify-content:center; margin-top:6px; font-weight:600;">
+            <span style="color:#64748b;">[Batch GD]</span><span style="color:#d97706;">[Vanilla SGD]</span><span
+              style="color:#2563eb;">[Momentum 0.9]</span><span style="color:#059669;">[Nesterov NAG]</span>
           </div>
-          <div class='log-box' id='grad-log'>Click <strong>Check Gradients</strong> to run live central finite-difference verification...</div>
+          <div class="log-box" id="grad-log">Click <strong>Check Gradients</strong> to run live central
+            finite-difference verification...</div>
         </div>
-        <div class='card'>
-          <h2>Units III &amp; V: Oja's Hebbian Rule, RBM Energy &amp; 2D VAE Latent Pad</h2>
-          <p class='sub'>Click inside the 2D VAE Latent Space pad on the left to sample <code>z = &mu; + &sigma; &odot; &epsilon;</code> and synthesize a novel product silhouette.</p>
-          <div class='grid-2' style='margin-bottom:10px;'>
-            <div class='canvas-wrap' style='height:200px; cursor:crosshair;'><canvas id='vae-pad' width='230' height='200'></canvas></div>
-            <div class='canvas-wrap' style='height:200px; flex-direction:column; color:#fff; padding:8px;'>
-              <div style='font-size:11px; margin-bottom:4px;' id='vae-label'>Latent z = [0.20, -0.30]</div>
-              <canvas id='vae-out' width='145' height='145'></canvas>
+
+        <div class="card">
+          <h2>Oja's Hebbian Rule, RBM Energy &amp; 2D VAE Latent Manifold</h2>
+          <p class="sub">Click inside the 2D VAE Latent Space pad on the left to sample
+            <code>z = &mu; + &sigma; &odot; &epsilon;</code> and synthesize a novel product silhouette.</p>
+          <div class="grid-2" style="margin-bottom:10px;">
+            <div class="canvas-wrap" style="height:200px; cursor:crosshair;"><canvas id="vae-pad" width="230"
+                height="200"></canvas></div>
+            <div class="canvas-wrap" style="height:200px; flex-direction:column; color:#fff; padding:8px;">
+              <div style="font-size:11px; margin-bottom:4px;" id="vae-label">Latent z = [0.20, -0.30]</div>
+              <canvas id="vae-out" width="145" height="145"></canvas>
             </div>
           </div>
-          <button class='btn primary' onclick='simulateOjaAndRBM()'>&#9654; Run 50 Oja Hebbian Steps &amp; RBM Gibbs Sampling</button>
-          <div class='log-box' id='hebb-log'>Standard Hebbian Norm: Unbounded | Oja Normalized Norm ||w||_2: 1.0000 | RBM Energy: -14.28</div>
+          <button class="btn primary" onclick="simulateOjaAndRBM()">&#9654; Run 50 Oja Hebbian Steps &amp; RBM Gibbs
+            Sampling</button>
+          <div class="log-box" id="hebb-log">Standard Hebbian Norm: Unbounded | Oja Normalized Norm ||w||_2: 1.0000 |
+            RBM Energy: -14.28</div>
         </div>
       </div>
     </section>
-    <section id='tab-3' class='tab-panel'>
-      <div class='grid-2'>
-        <div class='card'>
-          <h2>Unit IV Vision Architecture Benchmark (SOP + DeepFashion2)</h2>
-          <p class='sub'>Evaluated on SKU-Disjoint 70/15/15 Split (Seed = 42, 1,842 pHash duplicates removed)</p>
+
+    <!-- TAB 3: BENCHMARKS & ABLATION -->
+    <section id="tab-3" class="tab-panel">
+      <div class="grid-2">
+        <div class="card">
+          <h2>Vision &amp; Retrieval Architecture Benchmark (SOP + DeepFashion2)</h2>
+          <p class="sub">Evaluated on SKU-Disjoint 70/15/15 Split (Seed = 42, 1,842 pHash duplicates removed)</p>
           <table>
-            <thead><tr><th>Architecture</th><th>mAP@0.5</th><th>Seg mIoU</th><th>Top-1</th><th>Top-5</th><th>Latency</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Architecture</th>
+                <th>mAP@0.5</th>
+                <th>Seg mIoU</th>
+                <th>Top-1</th>
+                <th>Top-5</th>
+                <th>Latency</th>
+              </tr>
+            </thead>
             <tbody>
-              <tr><td>Baseline 3-Layer MLP</td><td>N/A</td><td>N/A</td><td>58.2%</td><td>71.4%</td><td>2.1 ms</td></tr>
-              <tr><td>GoogLeNet (Inception-v1)</td><td>0.831</td><td>0.784</td><td>80.2%</td><td>89.5%</td><td>11.4 ms</td></tr>
-              <tr><td>RetinaNet (Focal Loss)</td><td>0.879</td><td>0.832</td><td>84.9%</td><td>92.9%</td><td>23.8 ms</td></tr>
-              <tr><td>Faster R-CNN (ResNet50-FPN)</td><td><strong>0.904</strong></td><td><strong>0.871</strong></td><td><strong>87.1%</strong></td><td><strong>94.8%</strong></td><td>42.6 ms</td></tr>
-              <tr><td><strong>YOLOv8 + ResNet50 Metric (Deployed)</strong></td><td><strong>0.892</strong></td><td><strong>0.864</strong></td><td><strong>86.4%</strong></td><td><strong>94.2%</strong></td><td><strong>14.2 ms</strong></td></tr>
+              <tr>
+                <td>Baseline 3-Layer MLP</td>
+                <td>N/A</td>
+                <td>N/A</td>
+                <td>58.2%</td>
+                <td>71.4%</td>
+                <td>2.1 ms</td>
+              </tr>
+              <tr>
+                <td>GoogLeNet (Inception-v1)</td>
+                <td>0.831</td>
+                <td>0.784</td>
+                <td>80.2%</td>
+                <td>89.5%</td>
+                <td>11.4 ms</td>
+              </tr>
+              <tr>
+                <td>RetinaNet (Focal Loss)</td>
+                <td>0.879</td>
+                <td>0.832</td>
+                <td>84.9%</td>
+                <td>92.9%</td>
+                <td>23.8 ms</td>
+              </tr>
+              <tr>
+                <td>Faster R-CNN (ResNet50-FPN)</td>
+                <td><strong>0.904</strong></td>
+                <td><strong>0.871</strong></td>
+                <td><strong>87.1%</strong></td>
+                <td><strong>94.8%</strong></td>
+                <td>42.6 ms</td>
+              </tr>
+              <tr>
+                <td><strong>YOLOv8 + ResNet50 Metric (Deployed)</strong></td>
+                <td><strong>0.892</strong></td>
+                <td><strong>0.864</strong></td>
+                <td><strong>86.4%</strong></td>
+                <td><strong>94.2%</strong></td>
+                <td><strong>14.2 ms</strong></td>
+              </tr>
             </tbody>
           </table>
         </div>
-        <div class='card'>
-          <h2>Controlled Ablation Study (Phase II - 5 Marks)</h2>
-          <p class='sub'>Proving incremental benefit of He Init, Nesterov NAG, BatchNorm/Dropout, and SASRec Transformer Fusion</p>
+
+        <div class="card">
+          <h2>Controlled Ablation Study</h2>
+          <p class="sub">Incremental impact of He Init, Nesterov NAG, BatchNorm/Dropout, and SASRec Transformer Fusion
+          </p>
           <table>
-            <thead><tr><th>Ablation Stage</th><th>Val Loss</th><th>Recall@5</th><th>NDCG@10</th><th>Generalization</th></tr></thead>
+            <thead>
+              <tr>
+                <th>Ablation Stage</th>
+                <th>Val Loss</th>
+                <th>Recall@5</th>
+                <th>NDCG@10</th>
+                <th>Generalization</th>
+              </tr>
+            </thead>
             <tbody>
-              <tr><td>1. Baseline MLP (Naive Init, SGD)</td><td>0.689</td><td>71.4%</td><td>0.682</td><td>Overfit (+0.277)</td></tr>
-              <tr><td>2. + He Init + Nesterov (NAG)</td><td>0.441</td><td>79.8%</td><td>0.745</td><td>Moderate (+0.146)</td></tr>
-              <tr><td>3. + BatchNorm + Dropout(0.3) + L2</td><td>0.302</td><td>85.6%</td><td>0.791</td><td>Good (+0.034)</td></tr>
-              <tr><td><strong>4. + ArcFace Metric + SASRec Fusion</strong></td><td><strong>0.174</strong></td><td><strong>94.2%</strong></td><td><strong>0.894</strong></td><td><strong>Optimal (+0.012)</strong></td></tr>
+              <tr>
+                <td>1. Baseline MLP (Naive Init, SGD)</td>
+                <td>0.689</td>
+                <td>71.4%</td>
+                <td>0.682</td>
+                <td>Overfit (+0.277)</td>
+              </tr>
+              <tr>
+                <td>2. + He Init + Nesterov (NAG)</td>
+                <td>0.441</td>
+                <td>79.8%</td>
+                <td>0.745</td>
+                <td>Moderate (+0.146)</td>
+              </tr>
+              <tr>
+                <td>3. + BatchNorm + Dropout(0.3) + L2</td>
+                <td>0.302</td>
+                <td>85.6%</td>
+                <td>0.791</td>
+                <td>Good (+0.034)</td>
+              </tr>
+              <tr>
+                <td><strong>4. + ArcFace Metric + SASRec Fusion</strong></td>
+                <td><strong>0.174</strong></td>
+                <td><strong>94.2%</strong></td>
+                <td><strong>0.894</strong></td>
+                <td><strong>Optimal (+0.012)</strong></td>
+              </tr>
             </tbody>
           </table>
         </div>
       </div>
     </section>
   </main>
-  <script src='app.js'></script>
+  <script src="app.js"></script>
 </body>
+
 </html>
